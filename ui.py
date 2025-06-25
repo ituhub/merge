@@ -1382,7 +1382,7 @@ def add_manual_trading_controls(results):
             st.success(f"🎯 Auto take profit executed!")
             st.rerun()
 
-        # Calculate current P&L for this position (FIXED CALCULATION)
+    # Calculate current P&L for this position (FIXED CALCULATION)
     if current_position > 0:
         # Find average entry price from trade history
         buy_trades = [t for t in portfolio['trade_history']
@@ -1405,7 +1405,7 @@ def add_manual_trading_controls(results):
         unrealized_pnl = 0
         unrealized_pnl_pct = 0
 
-        # Position Summary
+    # Position Summary
     if current_position > 0:
         st.markdown(f"""
         ### 📊 Current Position: {ticker}
@@ -1636,7 +1636,7 @@ def auto_take_profit_check(portfolio, current_price, ticker):
     
     return False, ""
 
-   def check_and_execute_stop_orders(ticker, current_price):
+def check_and_execute_stop_orders(ticker, current_price):
     """Check and execute stop loss/take profit orders"""
     if 'portfolio' not in st.session_state:
         return
@@ -1983,6 +1983,10 @@ def handle_automated_trading(results):
 
 class AutonomousTradingSystem:
     """Complete autonomous trading system"""
+    
+    def __init__(self):
+        self.last_trade_time = {}
+        self.trade_cooldown = 300  # 5 minutes cooldown
 
     def should_trade(self, ticker, signal, signal_strength, market_regime=None, price_change=0):
         """Check if we should execute a trade with enhanced filtering"""
