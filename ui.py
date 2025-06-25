@@ -103,12 +103,49 @@ def apply_custom_theme():
 def setup_sidebar():
     """Setup the sidebar with theme selection, premium mode, and automated trading toggle"""
     st.sidebar.title("Settings")
+    
     # Theme selection
     selected_theme = st.sidebar.selectbox("Select Theme", list(THEMES.keys()))
     st.session_state['selected_theme'] = selected_theme
+    
+    # ADD TICKER SELECTION HERE
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🎯 Trading Instruments")
+    
+    tickers = ["^GDAXI", "GC=F", "KC=F", "NG=F", "CC=F", "^HSI"]
+    selected_ticker = st.sidebar.selectbox(
+        "Select Instrument",
+        tickers,
+        format_func=lambda x: {
+            "^GDAXI": "🇩🇪 DAX (German Stock Index)",
+            "GC=F": "🥇 Gold Futures", 
+            "KC=F": "☕ Coffee Futures",
+            "NG=F": "⛽ Natural Gas Futures",
+            "CC=F": "🍫 Cocoa Futures",
+            "^HSI": "🇭🇰 Hang Seng Index"
+        }.get(x, x),
+        key="ticker_selection"
+    )
+    st.session_state['selected_ticker'] = selected_ticker
+    
+    # Show current selection with icon
+    ticker_info = {
+        "^GDAXI": {"name": "DAX", "flag": "🇩🇪", "type": "Index"},
+        "GC=F": {"name": "Gold", "flag": "🥇", "type": "Commodity"},
+        "KC=F": {"name": "Coffee", "flag": "☕", "type": "Commodity"},
+        "NG=F": {"name": "Natural Gas", "flag": "⛽", "type": "Energy"},
+        "CC=F": {"name": "Cocoa", "flag": "🍫", "type": "Commodity"},
+        "^HSI": {"name": "Hang Seng", "flag": "🇭🇰", "type": "Index"}
+    }
+    
+    info = ticker_info.get(selected_ticker, {"name": selected_ticker, "flag": "📊", "type": "Asset"})
+    st.sidebar.info(f"**{info['flag']} {info['name']}**\nType: {info['type']}")
+    
     # Premium mode toggle
     premium_mode = st.sidebar.checkbox("Activate Premium Mode")
     st.session_state['premium_mode'] = premium_mode
+    
+    # ... rest of existing sidebar code ...
     # Enhanced trading controls
     st.sidebar.markdown("### 🤖 Trading Controls")
     automated_trading = st.sidebar.checkbox("Enable Automated Trading")
@@ -141,25 +178,78 @@ def setup_sidebar():
             st.session_state['trade_frequency'] = trade_frequency
         else:
             st.sidebar.info("🎛️ Semi-Autonomous Mode")
-    # Portfolio summary
+        # Portfolio summary
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 💼 Portfolio Summary")
 
     if 'portfolio' in st.session_state and st.session_state['portfolio']:
         portfolio = st.session_state['portfolio']
-        total_positions = sum(
-            qty for qty in portfolio['positions'].values() if qty > 0)
-        total_trades = len(portfolio['trade_history'])
+        
+        # Calculate current portfolio value with real-time prices
+        total_positions_value = 0
+        current_ticker = st.session_state.get('selected_ticker', '^GDAXI')
+        
+        # Approximate current prices for demo
+        current_prices = {
+            '^GDAXI': 23400,
+            'GC=F': 2050,
+            'KC=F': 185,
+            'NG=F': 3.25,
+            'CC=F': 245,
+            '^HSI': 19500
+        }
+        
+        for ticker, qty in portfolio['positions'].items():
+            if qty > 0:
+                current_price = current_prices.get(ticker, 1000)
+                total_positions_value += qty * current_price
+        
+        total_value = portfolio['cash'] + total_positions_value
+        initial_value = 70633.55  # Sum of all demo trades
+        total_pnl = total_value - initial_value
+        total_pnl_pct = (total_pnl / initial_value) * 100
 
+        # Display metrics
+        st.sidebar.metric("Portfolio Value", f"${total_value:,.0f}", f"{total_pnl:+,.0f} ({total_pnl_pct:+.1f}%)")
         st.sidebar.metric("Cash Balance", f"${portfolio['cash']:,.0f}")
-        st.sidebar.metric(
-            "Open Positions", f"{len([k for k, v in portfolio['positions'].items() if v > 0])}")
+        
+        # Position count
+        open_positions = len([k for k, v in portfolio['positions'].items() if v > 0])
+        st.sidebar.metric("Open Positions", f"{open_positions}")
+        
+        # Total trades
+        total_trades = len(portfolio['trade_history'])
         st.sidebar.metric("Total Trades", total_trades)
+
+        # Show positions
+        if open_positions > 0:
+            st.sidebar.markdown("**📊 Current Positions:**")
+            for ticker, qty in portfolio['positions'].items():
+                if qty > 0:
+                    current_price = current_prices.get(ticker, 1000)
+                    position_value = qty * current_price
+                    allocation = (position_value / total_value) * 100
+                    
+                    # Get ticker display info
+                    ticker_display = {
+                        "^GDAXI": "🇩🇪 DAX",
+                        "GC=F": "🥇 Gold", 
+                        "KC=F": "☕ Coffee",
+                        "NG=F": "⛽ Gas",
+                        "CC=F": "🍫 Cocoa",
+                        "^HSI": "🇭🇰 HSI"
+                    }.get(ticker, ticker)
+                    
+                    # Highlight current selection
+                    if ticker == current_ticker:
+                        st.sidebar.success(f"▶️ **{ticker_display}**: {allocation:.1f}%")
+                    else:
+                        st.sidebar.write(f"• {ticker_display}: {allocation:.1f}%")
 
         if total_trades > 0:
             latest_trade = portfolio['trade_history'][-1]
-            st.sidebar.write(
-                f"**Last Trade:** {latest_trade['action']} {latest_trade['ticker']}")
+            action_icon = "🟢" if latest_trade['action'] == 'BUY' else "🔴"
+            st.sidebar.write(f"**Last Trade:** {action_icon} {latest_trade['action']} {latest_trade['ticker']}")
     else:
         st.sidebar.write("No trading activity yet")
 
@@ -2249,11 +2339,36 @@ def main():
     setup_sidebar()
     apply_custom_theme()
 
-    # Header
+        # Header
     st.markdown("""
     # 🚀 Advanced AI Trading Dashboard
     ### Powered by Multi-Model Ensemble & Real-time Market Intelligence
     """)
+
+    # ADD QUICK TICKER SWITCHING BUTTONS
+    st.markdown("### 🎯 Quick Instrument Selection")
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    
+    quick_tickers = {
+        "^GDAXI": {"name": "DAX", "icon": "🇩🇪"},
+        "GC=F": {"name": "Gold", "icon": "🥇"},
+        "KC=F": {"name": "Coffee", "icon": "☕"},
+        "NG=F": {"name": "Gas", "icon": "⛽"},
+        "CC=F": {"name": "Cocoa", "icon": "🍫"},
+        "^HSI": {"name": "HSI", "icon": "🇭🇰"}
+    }
+    
+    current_ticker = st.session_state.get('selected_ticker', '^GDAXI')
+    
+    for i, (ticker, info) in enumerate(quick_tickers.items()):
+        col = [col1, col2, col3, col4, col5, col6][i]
+        with col:
+            button_type = "primary" if ticker == current_ticker else "secondary"
+            if st.button(f"{info['icon']} {info['name']}", key=f"quick_{ticker}", type=button_type):
+                st.session_state['selected_ticker'] = ticker
+                st.rerun()
+    
+    st.markdown("---")
 
     if not BACKEND_AVAILABLE:
         st.error(
@@ -2262,22 +2377,14 @@ def main():
 
     initialize_demo_portfolio()
 
-    # Ticker selection
-    tickers = ["^GDAXI", "GC=F", "KC=F", "NG=F", "CC=F", "^HSI"]
-    selected_ticker = st.selectbox(
-        "🎯 Select Trading Instrument",
-        tickers,
-        format_func=lambda x: {
-            "^GDAXI": "🇩🇪 DAX (German Stock Index)",
-            "GC=F": "🥇 Gold Futures",
-            "KC=F": "☕ Coffee Futures",
-            "NG=F": "⛽ Natural Gas Futures",
-            "CC=F": "🍫 Cocoa Futures",
-            "^HSI": "🇭🇰 Hang Seng Index"
-        }.get(x, x),
-    )
+    # GET TICKER FROM SIDEBAR SELECTION
+    selected_ticker = st.session_state.get('selected_ticker', '^GDAXI')
+    
+    # Display current selection in main area
+    st.markdown(f"### 📊 Analysis for {selected_ticker}")
 
     # Enhanced auto-refresh options
+    st.sidebar.markdown("---")
     st.sidebar.markdown("### ⚡ Auto-Refresh Settings")
     auto_refresh = st.sidebar.checkbox("🔄 Enable Auto-Refresh", value=False)
 
