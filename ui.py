@@ -1355,6 +1355,32 @@ def add_manual_trading_controls(results):
 
     portfolio = st.session_state['portfolio']
     current_position = portfolio['positions'].get(ticker, 0)
+    
+    # Check for auto take profit before showing controls
+    should_take_profit, profit_reason = auto_take_profit_check(portfolio, current_price, ticker)
+    
+    if should_take_profit:
+        st.warning(f"⚠️ **AUTO TAKE PROFIT AVAILABLE**: {profit_reason}")
+        if st.button("🎯 Execute Auto Take Profit", type="primary"):
+            current_position = portfolio['positions'].get(ticker, 0)
+            proceeds = current_position * current_price
+            portfolio['cash'] += proceeds
+            portfolio['positions'][ticker] = 0
+            
+            # Add trade record
+            trade = {
+                'timestamp': datetime.now(),
+                'ticker': ticker,
+                'action': 'AUTO_TAKE_PROFIT',
+                'shares': current_position,
+                'price': current_price,
+                'amount': proceeds,
+                'signal_strength': 1.0,
+                'reason': profit_reason
+            }
+            portfolio['trade_history'].append(trade)
+            st.success(f"🎯 Auto take profit executed!")
+            st.rerun()
 
         # Calculate current P&L for this position (FIXED CALCULATION)
     if current_position > 0:
@@ -1379,7 +1405,7 @@ def add_manual_trading_controls(results):
         unrealized_pnl = 0
         unrealized_pnl_pct = 0
 
-    # Position Summary
+        # Position Summary
     if current_position > 0:
         st.markdown(f"""
         ### 📊 Current Position: {ticker}
@@ -1398,6 +1424,7 @@ def add_manual_trading_controls(results):
         else:
             st.info("🟡 Break Even")
 
+    # FIX: Add proper indentation for col1, col2, col3
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -1491,8 +1518,7 @@ def add_manual_trading_controls(results):
 
                 # Execute the trade
                 portfolio['cash'] += proceeds
-                portfolio['positions'][ticker] = current_position - \
-                    shares_to_sell
+                portfolio['positions'][ticker] = current_position - shares_to_sell
                 portfolio['realized_pnl'] += realized_pnl
 
                 # Record trade
@@ -1591,9 +1617,26 @@ def add_manual_trading_controls(results):
 
     # Check and execute stop orders
     check_and_execute_stop_orders(ticker, current_price)
+    
+def auto_take_profit_check(portfolio, current_price, ticker):
+    """Automatically take profits on strong gains"""
+    current_position = portfolio['positions'].get(ticker, 0)
+    
+    if current_position > 0:
+        # Calculate unrealized gain
+        buy_trades = [t for t in portfolio['trade_history'] 
+                     if t['ticker'] == ticker and t['action'] == 'BUY']
+        if buy_trades:
+            avg_entry = sum(t['amount'] for t in buy_trades) / sum(t['shares'] for t in buy_trades)
+            gain_pct = ((current_price - avg_entry) / avg_entry) * 100
+            
+            # Auto sell if gain > 15%
+            if gain_pct > 15:
+                return True, f"Auto take profit: +{gain_pct:.1f}%"
+    
+    return False, ""
 
-
-def check_and_execute_stop_orders(ticker, current_price):
+   def check_and_execute_stop_orders(ticker, current_price):
     """Check and execute stop loss/take profit orders"""
     if 'portfolio' not in st.session_state:
         return
@@ -1673,6 +1716,24 @@ def check_and_execute_stop_orders(ticker, current_price):
     if executed:
         del portfolio['stop_orders'][ticker]
         st.rerun()
+        
+def enhanced_signal_filter(price_change, signal_strength, market_regime):
+    """Enhanced signal filtering based on multiple factors"""
+    
+    # Base signal strength threshold
+    min_strength = 0.4
+    
+    # Adjust threshold based on market regime
+    if market_regime == 'high_volatility':
+        min_strength = 0.6  # Require stronger signals in volatile markets
+    elif market_regime == 'low_volatility':
+        min_strength = 0.3  # Allow weaker signals in stable markets
+    
+    # Require stronger signals for larger moves
+    if abs(price_change) > 5:
+        min_strength = max(min_strength, 0.7)
+    
+    return signal_strength >= min_strength        
 
 
 def enhanced_automated_trading(results):
@@ -1923,13 +1984,8 @@ def handle_automated_trading(results):
 class AutonomousTradingSystem:
     """Complete autonomous trading system"""
 
-    def __init__(self):
-        self.running = False
-        self.last_trade_time = {}
-        self.trade_cooldown = 300  # 5 minutes between trades
-
-    def should_trade(self, ticker, signal, signal_strength):
-        """Check if we should execute a trade"""
+    def should_trade(self, ticker, signal, signal_strength, market_regime=None, price_change=0):
+        """Check if we should execute a trade with enhanced filtering"""
         current_time = datetime.now()
 
         # Check cooldown period
@@ -1938,19 +1994,9 @@ class AutonomousTradingSystem:
             if time_since_last < self.trade_cooldown:
                 return False, f"Cooldown: {self.trade_cooldown - time_since_last}s remaining"
 
-        # Check signal strength threshold
-        if signal_strength < 0.4:
-            return False, f"Signal too weak: {signal_strength:.1%}"
-
-        # RELAXED market hours check for demo (allow trading anytime)
-        # For production, uncomment the market hours check below:
-        """
-        market_open = current_time.replace(hour=9, minute=30, second=0, microsecond=0)
-        market_close = current_time.replace(hour=16, minute=0, second=0, microsecond=0)
-        
-        if not (market_open <= current_time <= market_close):
-            return False, "Market closed"
-        """
+        # Use enhanced signal filter
+        if not enhanced_signal_filter(price_change, signal_strength, market_regime):
+            return False, f"Signal filtered out: {signal_strength:.1%} in {market_regime} regime"
 
         return True, "Ready to trade"
 
@@ -1964,6 +2010,35 @@ class AutonomousTradingSystem:
         current_price = results['current_price']
         ensemble_pred = results['ensemble_prediction']
         price_change = ((ensemble_pred - current_price) / current_price) * 100
+        market_regime = results.get('market_regime', 'normal')
+
+        # Check for auto take profit FIRST
+        should_take_profit, profit_reason = auto_take_profit_check(portfolio, current_price, ticker)
+        
+        if should_take_profit:
+            current_position = portfolio['positions'].get(ticker, 0)
+            if current_position > 0:
+                # Execute auto take profit
+                proceeds = current_position * current_price
+                portfolio['cash'] += proceeds
+                portfolio['positions'][ticker] = 0
+
+                trade = {
+                    'timestamp': datetime.now(),
+                    'ticker': ticker,
+                    'action': 'AUTO_TAKE_PROFIT',
+                    'shares': current_position,
+                    'price': current_price,
+                    'amount': proceeds,
+                    'signal_strength': 1.0,
+                    'reason': profit_reason
+                }
+                portfolio['trade_history'].append(trade)
+                self.last_trade_time[ticker] = datetime.now()
+
+                st.success(f"🎯 **AUTO TAKE PROFIT**: {current_position:.3f} shares @ ${current_price:.2f}")
+                st.session_state['portfolio'] = portfolio
+                return
 
         # Advanced signal calculation
         signal_strength = min(abs(price_change) / 5.0, 1.0)
@@ -1976,18 +2051,22 @@ class AutonomousTradingSystem:
         else:
             signal = 'HOLD'
 
-        # Check if we should trade
-        can_trade, reason = self.should_trade(ticker, signal, signal_strength)
+        # Check if we should trade with enhanced filtering
+        can_trade, reason = self.should_trade(ticker, signal, signal_strength, market_regime, price_change)
 
         if not can_trade:
-            st.info(
-                f"🤖 Autonomous Trading: {signal} signal detected but {reason}")
+            st.info(f"🤖 Autonomous Trading: {signal} signal detected but {reason}")
             return
 
         # Execute BUY logic
         if signal == 'BUY':
+            # Dynamic position sizing based on signal strength
+            base_investment = portfolio['cash'] * 0.15  # Base 15%
+            signal_multiplier = signal_strength * 0.1   # Up to 10% extra
             max_investment = min(
-                portfolio['cash'] * 0.2, portfolio['cash'] * signal_strength)
+                portfolio['cash'] * (0.15 + signal_multiplier), 
+                portfolio['cash'] * 0.25  # Cap at 25%
+            )
 
             if max_investment > 1000:  # Minimum $1000 for autonomous trades
                 shares_to_buy = max_investment / current_price
