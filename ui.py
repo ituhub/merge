@@ -20,6 +20,13 @@ import logging
 import io
 import csv
 
+# Add this import after your existing imports
+from auto_demo_system import (
+    setup_auto_demo_controls,
+    display_auto_demo_dashboard,
+    display_demo_completed_summary
+)
+
 warnings.filterwarnings("ignore")
 
 # Import from backend merging.py
