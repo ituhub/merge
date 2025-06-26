@@ -23,3 +23,17 @@ vaderSentiment
 pytrends
 scipy
 python-dotenv
+
+# Report generation packages
+reportlab
+openpyxl
+xlsxwriter
+fpdf2
+
+# Additional data processing
+tabulate
+jinja2
+
+# Enhanced visualization (optional)
+seaborn
+kaleido
