@@ -19,14 +19,22 @@ import threading
 import logging
 import io
 import csv
+import random
+import json
 
-# Add this import after your existing imports
-from auto_demo_system import (
-    setup_auto_demo_controls,
-    display_auto_demo_dashboard,
-    display_demo_completed_summary
-)
+# Import auto-demo system with error handling
+try:
+    from auto_demo_system import (
+        setup_auto_demo_controls,
+        display_auto_demo_dashboard,
+        display_demo_completed_summary
+    )
+AUTO_DEMO_AVAILABLE = True
+except ImportError:
+    AUTO_DEMO_AVAILABLE = False
+    st.sidebar.warning("Auto-demo system not available")
 
+# Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
 
 # Import from backend merging.py
@@ -2816,6 +2824,11 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🎯 Demo Mode")
     
+    if AUTO_DEMO_AVAILABLE:
+        setup_auto_demo_controls()
+    else:
+        st.sidebar.warning("Auto Demo not available. Please ensure merging.py is in the same directory.")
+    
     demo_speed = st.sidebar.selectbox(
         "Demo Speed",
         ["Real-time", "2x Speed", "5x Speed", "10x Speed"],
@@ -2838,6 +2851,10 @@ def main():
     if presentation_mode:
         st.sidebar.success("🎤 Presentation mode active - Enhanced visuals enabled")
 
+    # Display auto-demo dashboard if active
+    if AUTO_DEMO_AVAILABLE:
+        display_auto_demo_dashboard()
+
     # Get predictions and display results
     with st.spinner(f'🔄 Processing {selected_ticker}...'):
         results = get_comprehensive_predictions(selected_ticker)
@@ -2853,6 +2870,10 @@ def main():
             st.info("ℹ️ Automated Trading is disabled")
     else:
         st.error("❌ Unable to generate predictions. Please check your setup and try again.")
+        
+    # Display demo completion summary
+    if AUTO_DEMO_AVAILABLE:
+        display_demo_completed_summary()    
         
         # Troubleshooting info
         with st.expander("🔧 Troubleshooting"):
