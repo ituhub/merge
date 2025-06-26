@@ -29,7 +29,7 @@ try:
         display_auto_demo_dashboard,
         display_demo_completed_summary
     )
-AUTO_DEMO_AVAILABLE = True
+    AUTO_DEMO_AVAILABLE = True
 except ImportError:
     AUTO_DEMO_AVAILABLE = False
     st.sidebar.warning("Auto-demo system not available")
