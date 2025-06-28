@@ -158,44 +158,250 @@ def setup_sidebar():
     info = ticker_info.get(selected_ticker, {"name": selected_ticker, "flag": "📊", "type": "Asset"})
     st.sidebar.info(f"**{info['flag']} {info['name']}**\nType: {info['type']}")
     
-    # Premium mode toggle
-    premium_mode = st.sidebar.checkbox("Activate Premium Mode")
+    # PREMIUM MODE TOGGLE - CORRECTED VERSION
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 💎 Premium Features")
+    
+    premium_mode = st.sidebar.checkbox(
+        "🔓 Activate Premium Mode", 
+        value=st.session_state.get('premium_mode', False),
+        help="Unlock advanced AI signals, risk management, and professional tools"
+    )
     st.session_state['premium_mode'] = premium_mode
     
-    # ... rest of existing sidebar code ...
-    # Enhanced trading controls
+    if premium_mode:
+        st.sidebar.success("💎 **PREMIUM ACTIVE**")
+        st.sidebar.markdown("""
+        **✅ Premium Features Enabled:**
+        - 🎯 Advanced Position Sizing
+        - 🛡️ Dynamic Risk Management  
+        - 📊 Professional Analytics
+        - ⚡ Real-time Execution Signals
+        - 📈 Multi-timeframe Analysis
+        - 🔥 Institutional-grade Tools
+        """)
+        
+        # Premium-only settings
+        advanced_risk_mgmt = st.sidebar.checkbox(
+            "🛡️ Advanced Risk Management", 
+            value=True,
+            help="AI-powered stop loss and position sizing"
+        )
+        st.session_state['advanced_risk_mgmt'] = advanced_risk_mgmt
+        
+        if advanced_risk_mgmt:
+            risk_tolerance = st.sidebar.selectbox(
+                "Risk Tolerance",
+                ["Conservative", "Moderate", "Aggressive"],
+                index=1,
+                help="Adjust risk parameters for trading strategies"
+            )
+            st.session_state['risk_tolerance'] = risk_tolerance
+            
+            max_drawdown = st.sidebar.slider(
+                "Max Drawdown (%)",
+                min_value=5,
+                max_value=25,
+                value=15,
+                help="Maximum acceptable portfolio drawdown"
+            )
+            st.session_state['max_drawdown'] = max_drawdown
+    else:
+        st.sidebar.warning("🔒 **Premium Features Locked**")
+        st.sidebar.markdown("""
+        **🚀 Upgrade to Premium for:**
+        - Advanced AI trading signals
+        - Professional risk management
+        - Institutional-grade analytics
+        - Priority support & updates
+        """)
+        
+        if st.sidebar.button("💎 Upgrade to Premium", type="primary"):
+            st.sidebar.balloons()
+            st.sidebar.success("🎉 Premium upgrade simulation! In a real app, this would process payment.")
+
+    # ENHANCED TRADING CONTROLS - COMPLETE VERSION
+    st.sidebar.markdown("---")
     st.sidebar.markdown("### 🤖 Trading Controls")
-    automated_trading = st.sidebar.checkbox("Enable Automated Trading")
+    
+    automated_trading = st.sidebar.checkbox(
+        "🔄 Enable Automated Trading",
+        value=st.session_state.get('automated_trading', False),
+        help="Allow the AI system to execute trades automatically"
+    )
     st.session_state['automated_trading'] = automated_trading
 
     if automated_trading:
-        # Autonomous trading settings
-        autonomous_mode = st.sidebar.checkbox("🚀 Autonomous Mode", value=False)
-        st.session_state['autonomous_mode'] = autonomous_mode
-
-        if autonomous_mode:
-            st.sidebar.success("🤖 Autonomous Trading Active")
-
-            # Risk settings for autonomous mode
-            max_position_size = st.sidebar.slider(
-                "Max Position Size (%)",
-                min_value=5,
-                max_value=50,
-                value=25,
-                help="Maximum percentage of portfolio in one position"
+        st.sidebar.success("🤖 **AUTOMATED TRADING ACTIVE**")
+        
+        # Trading mode selection
+        trading_mode = st.sidebar.radio(
+            "🎛️ Trading Mode",
+            ["Semi-Autonomous", "Fully Autonomous"],
+            index=0,
+            help="Choose how the AI system should operate"
+        )
+        st.session_state['trading_mode'] = trading_mode
+        
+        if trading_mode == "Fully Autonomous":
+            st.sidebar.warning("⚠️ **FULLY AUTONOMOUS MODE**")
+            st.sidebar.markdown("AI will trade without confirmation")
+            
+            # Autonomous mode settings
+            autonomous_active = st.sidebar.checkbox(
+                "🚀 Activate Autonomous Mode", 
+                value=st.session_state.get('autonomous_mode', False),
+                help="AI will execute trades automatically based on signals"
             )
-            st.session_state['max_position_size'] = max_position_size
+            st.session_state['autonomous_mode'] = autonomous_active
 
-            trade_frequency = st.sidebar.selectbox(
-                "Trade Frequency",
-                ["Conservative", "Moderate", "Aggressive"],
-                index=1,
-                help="How frequently the system should trade"
+            if autonomous_active:
+                st.sidebar.success("🤖 **AUTONOMOUS TRADING LIVE**")
+                
+                # Advanced autonomous settings
+                st.sidebar.markdown("**⚙️ Autonomous Settings:**")
+                
+                max_position_size = st.sidebar.slider(
+                    "Max Position Size (%)",
+                    min_value=5,
+                    max_value=50,
+                    value=25,
+                    help="Maximum percentage of portfolio in one position"
+                )
+                st.session_state['max_position_size'] = max_position_size
+
+                trade_frequency = st.sidebar.selectbox(
+                    "Trade Frequency",
+                    ["Conservative", "Moderate", "Aggressive"],
+                    index=1,
+                    help="How frequently the system should trade"
+                )
+                st.session_state['trade_frequency'] = trade_frequency
+                
+                # Risk management for autonomous mode
+                auto_stop_loss = st.sidebar.checkbox(
+                    "🛡️ Auto Stop Loss",
+                    value=True,
+                    help="Automatically set stop losses on new positions"
+                )
+                st.session_state['auto_stop_loss'] = auto_stop_loss
+                
+                if auto_stop_loss:
+                    default_stop_loss = st.sidebar.slider(
+                        "Default Stop Loss (%)",
+                        min_value=2,
+                        max_value=15,
+                        value=5,
+                        help="Default stop loss percentage for new positions"
+                    )
+                    st.session_state['default_stop_loss'] = default_stop_loss
+                
+                auto_take_profit = st.sidebar.checkbox(
+                    "🎯 Auto Take Profit",
+                    value=True,
+                    help="Automatically take profits at target levels"
+                )
+                st.session_state['auto_take_profit'] = auto_take_profit
+                
+                if auto_take_profit:
+                    default_take_profit = st.sidebar.slider(
+                        "Default Take Profit (%)",
+                        min_value=5,
+                        max_value=50,
+                        value=15,
+                        help="Default take profit percentage for new positions"
+                    )
+                    st.session_state['default_take_profit'] = default_take_profit
+                
+                # Emergency controls
+                st.sidebar.markdown("**🚨 Emergency Controls:**")
+                if st.sidebar.button("⏸️ Pause All Trading", type="secondary"):
+                    st.session_state['trading_paused'] = True
+                    st.sidebar.warning("⏸️ Trading paused!")
+                
+                if st.sidebar.button("🚨 Emergency Stop All", type="secondary"):
+                    st.session_state['emergency_stop'] = True
+                    st.sidebar.error("🚨 Emergency stop activated!")
+            else:
+                st.sidebar.info("🤖 Autonomous mode ready but disabled")
+                st.sidebar.markdown("Enable to allow AI to trade without confirmation")
+        
+        else:  # Semi-Autonomous
+            st.sidebar.info("🎛️ **SEMI-AUTONOMOUS MODE**")
+            st.sidebar.markdown("AI will suggest trades for your approval")
+            
+            # Semi-autonomous settings
+            signal_threshold = st.sidebar.slider(
+                "Signal Threshold",
+                min_value=0.1,
+                max_value=1.0,
+                value=0.5,
+                step=0.1,
+                help="Minimum signal strength to trigger trade recommendations"
             )
-            st.session_state['trade_frequency'] = trade_frequency
-        else:
-            st.sidebar.info("🎛️ Semi-Autonomous Mode")
-    # Portfolio summary
+            st.session_state['signal_threshold'] = signal_threshold
+            
+            auto_approve_small = st.sidebar.checkbox(
+                "🔄 Auto-approve small trades",
+                value=False,
+                help="Automatically approve trades under $1000"
+            )
+            st.session_state['auto_approve_small'] = auto_approve_small
+            
+            if auto_approve_small:
+                small_trade_limit = st.sidebar.number_input(
+                    "Small trade limit ($)",
+                    min_value=100,
+                    max_value=2000,
+                    value=1000,
+                    step=100
+                )
+                st.session_state['small_trade_limit'] = small_trade_limit
+        
+        # Trading session settings
+        st.sidebar.markdown("**📅 Trading Session:**")
+        
+        # Market hours (simplified)
+        trading_hours = st.sidebar.checkbox(
+            "🕐 Respect Market Hours",
+            value=True,
+            help="Only trade during market hours"
+        )
+        st.session_state['trading_hours'] = trading_hours
+        
+        # Maximum trades per day
+        max_daily_trades = st.sidebar.slider(
+            "Max Daily Trades",
+            min_value=1,
+            max_value=20,
+            value=10,
+            help="Maximum number of trades per day"
+        )
+        st.session_state['max_daily_trades'] = max_daily_trades
+        
+        # Portfolio allocation limits
+        max_portfolio_risk = st.sidebar.slider(
+            "Max Portfolio Risk (%)",
+            min_value=10,
+            max_value=100,
+            value=75,
+            help="Maximum percentage of portfolio to use for trading"
+        )
+        st.session_state['max_portfolio_risk'] = max_portfolio_risk
+        
+    else:
+        st.sidebar.info("🔒 **MANUAL TRADING ONLY**")
+        st.sidebar.markdown("All trades require manual execution")
+        
+        # Manual mode settings
+        manual_confirmations = st.sidebar.checkbox(
+            "✅ Require Trade Confirmations",
+            value=True,
+            help="Show confirmation dialogs for manual trades"
+        )
+        st.session_state['manual_confirmations'] = manual_confirmations
+
+    # PORTFOLIO SUMMARY SECTION - Enhanced
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 💼 Portfolio Summary")
 
@@ -226,19 +432,36 @@ def setup_sidebar():
         total_pnl = total_value - initial_value
         total_pnl_pct = (total_pnl / initial_value) * 100
 
-        # Display metrics
-        st.sidebar.metric("Portfolio Value", f"${total_value:,.0f}", f"{total_pnl:+,.0f} ({total_pnl_pct:+.1f}%)")
-        st.sidebar.metric("Cash Balance", f"${portfolio['cash']:,.0f}")
+        # Display metrics with enhanced formatting
+        st.sidebar.metric(
+            "Portfolio Value", 
+            f"${total_value:,.0f}", 
+            f"{total_pnl:+,.0f} ({total_pnl_pct:+.1f}%)",
+            help="Total portfolio value including cash and positions"
+        )
+        st.sidebar.metric(
+            "Cash Balance", 
+            f"${portfolio['cash']:,.0f}",
+            help="Available cash for trading"
+        )
         
         # Position count
         open_positions = len([k for k, v in portfolio['positions'].items() if v > 0])
-        st.sidebar.metric("Open Positions", f"{open_positions}")
+        st.sidebar.metric(
+            "Open Positions", 
+            f"{open_positions}",
+            help="Number of currently held positions"
+        )
         
         # Total trades
         total_trades = len(portfolio['trade_history'])
-        st.sidebar.metric("Total Trades", total_trades)
+        st.sidebar.metric(
+            "Total Trades", 
+            total_trades,
+            help="Total number of executed trades"
+        )
 
-        # Show positions
+        # Enhanced position display with current selection highlighting
         if open_positions > 0:
             st.sidebar.markdown("**📊 Current Positions:**")
             for ticker, qty in portfolio['positions'].items():
@@ -261,30 +484,51 @@ def setup_sidebar():
                     if ticker == current_ticker:
                         st.sidebar.success(f"▶️ **{ticker_display}**: {allocation:.1f}%")
                     else:
-                        st.sidebar.write(f"• {ticker_display}: {allocation:.1f}%")
+                        # Color code by allocation size
+                        if allocation > 30:
+                            st.sidebar.warning(f"• {ticker_display}: {allocation:.1f}%")
+                        else:
+                            st.sidebar.write(f"• {ticker_display}: {allocation:.1f}%")
 
+        # Show last trade with enhanced details
         if total_trades > 0:
             latest_trade = portfolio['trade_history'][-1]
             action_icon = "🟢" if latest_trade['action'] == 'BUY' else "🔴"
-            st.sidebar.write(f"**Last Trade:** {action_icon} {latest_trade['action']} {latest_trade['ticker']}")
+            time_ago = (datetime.now() - latest_trade['timestamp']).seconds // 60
+            
+            st.sidebar.markdown(f"""
+            **📈 Last Trade:** 
+            {action_icon} {latest_trade['action']} {latest_trade['ticker']}
+            💰 ${latest_trade['amount']:,.0f} ({time_ago}m ago)
+            """)
+            
+        # Performance indicators
+        if total_pnl_pct > 5:
+            st.sidebar.success("🚀 Strong Performance!")
+        elif total_pnl_pct > 0:
+            st.sidebar.info("📈 Positive Returns")
+        elif total_pnl_pct < -10:
+            st.sidebar.error("⚠️ High Losses - Review Strategy")
+        else:
+            st.sidebar.warning("📉 Negative Returns")
+            
     else:
         st.sidebar.write("No trading activity yet")
+        st.sidebar.info("💡 Start with automated trading or make manual trades")
 
-    # ADD PROFESSIONAL PERFORMANCE EXPORT
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📊 **Client Reports**")
-    
-    # Professional reporting buttons
-    col1, col2 = st.sidebar.columns(2)
-    
-    with col1:
-        if st.button("📈 Executive Summary", help="Generate executive summary report"):
-            generate_executive_summary()
-    
-    with col2:
-        if st.button("📊 Full Report", help="Generate comprehensive trading report"):
-            generate_full_performance_report()
-    
+    # Quick action buttons for portfolio
+    if 'portfolio' in st.session_state:
+        st.sidebar.markdown("**⚡ Quick Actions:**")
+        col1, col2 = st.sidebar.columns(2)
+        
+        with col1:
+            if st.button("📊 Analytics", help="View detailed portfolio analytics"):
+                st.session_state['show_analytics'] = True
+        
+        with col2:
+            if st.button("💾 Export", help="Export portfolio data"):
+                st.session_state['show_export'] = True
+
     # Quick export options
     if 'portfolio' in st.session_state and st.session_state['portfolio']['trade_history']:
         export_format = st.sidebar.selectbox(
@@ -440,7 +684,7 @@ def load_trained_models(ticker):
 
 
 def get_comprehensive_predictions(ticker):
-    """Get comprehensive predictions from backend."""
+    """Get comprehensive predictions from backend - FIXED VERSION"""
     if not BACKEND_AVAILABLE:
         return None
     try:
@@ -451,222 +695,142 @@ def get_comprehensive_predictions(ticker):
 
         with st.spinner(f'🔄 Processing {ticker} with full AI pipeline...'):
             # 1. Fetch multi-timeframe data
-            multi_tf_data = components['data_manager'].fetch_multi_timeframe_data(
-                ticker)
+            multi_tf_data = components['data_manager'].fetch_multi_timeframe_data(ticker)
             if not multi_tf_data:
                 st.error(f"No data available for {ticker}")
                 return None
+                
             # Use daily data for main analysis
-            data = multi_tf_data.get(
-                '1day', next(iter(multi_tf_data.values())))
+            data = multi_tf_data.get('1day', next(iter(multi_tf_data.values())))
 
             # 2. Market regime detection
             current_regime = components['regime_detector'].detect_regime(data)
 
-            # 3. Feature engineering - Use exact same process as merging.py
-            feature_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-            enhanced_df = enhance_features(data, feature_cols)
+            # 3. Load training configuration FIRST
+            safe_ticker = ticker.replace('/', '_')
+            config_path = f"models/{safe_ticker}_config.pkl"
+            feature_cols_path = f"models/{safe_ticker}_features.pkl"
+            scaler_path = f"models/{safe_ticker}_scaler.pkl"
+            
+            if not all(os.path.exists(p) for p in [config_path, feature_cols_path, scaler_path]):
+                st.warning(f"Missing training files for {ticker}. Training new models...")
+                # Train new models using the same process as merging.py
+                feature_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+                enhanced_df = enhance_features(data, feature_cols)
+                
+                models, scaler, training_config = train_enhanced_models(
+                    enhanced_df, feature_cols, ticker, time_step=60)
+                
+                if not models:
+                    st.error("Model training failed")
+                    return None
+                    
+                time_step = training_config['time_step']
+                available_features = training_config['feature_cols']
+            else:
+                # Load existing configuration
+                with open(config_path, "rb") as f:
+                    training_config = pickle.load(f)
+                with open(feature_cols_path, 'rb') as f:
+                    available_features = pickle.load(f)
+                with open(scaler_path, 'rb') as f:
+                    scaler = pickle.load(f)
+                    
+                time_step = training_config['time_step']
+
+            # 4. Feature engineering - USE EXACT SAME PROCESS AS TRAINING
+            enhanced_df = enhance_features(data, available_features)
             if enhanced_df is None or enhanced_df.empty:
                 st.error("Feature enhancement failed")
                 return None
 
-            # Load training configuration if exists
-            safe_ticker = ticker.replace('/', '_')
-            config_path = f"models/{safe_ticker}_config.pkl"
-            time_step = 60  # Default value
-            
-            if os.path.exists(config_path):
-                with open(config_path, "rb") as f:
-                    training_config = pickle.load(f)
-                time_step = training_config['time_step']
-                trained_feature_cols = training_config['feature_cols']  # Use training features
-                n_features = len(trained_feature_cols)
-                seq_len = time_step
-                
-                # Override feature_cols with training features
-                feature_cols = trained_feature_cols
-            else:
-                # Train new models if no config exists
-                st.warning(f"No trained models found for {ticker}. Training new models...")
-                models, scaler, training_config = train_enhanced_models(
-                    enhanced_df, feature_cols, ticker, time_step=time_step)
-                if not models:
-                    st.error("Model training failed")
-                    return None
-                else:
-                    time_step = training_config['time_step']
-                    feature_cols = training_config['feature_cols']
-                    
-            # Load the feature columns used during training
-            feature_cols_path = f"models/{safe_ticker}_features.pkl"
-            if os.path.exists(feature_cols_path):
-                with open(feature_cols_path, 'rb') as f:
-                    trained_feature_cols = pickle.load(f)
-            else:
-                st.error(f"Feature columns file not found for {ticker}")
-                return None
-
-            # Use the trained feature columns
-            available_features = trained_feature_cols
-
-            # Load the scaler used during training
-            scaler_path = f"models/{safe_ticker}_scaler.pkl"
-            if os.path.exists(scaler_path):
-                with open(scaler_path, 'rb') as f:
-                    scaler = pickle.load(f)
-            else:
-                scaler = None
-                st.warning(f"Scaler file not found for {ticker}")
-
-            # Ensure the same columns are in the enhanced_df
-            missing_features = [
-                col for col in available_features if col not in enhanced_df.columns]
+            # Ensure we have the exact same features as training
+            missing_features = [col for col in available_features if col not in enhanced_df.columns]
             if missing_features:
-                st.warning(f"Missing features detected: {missing_features}")
+                st.warning(f"Missing features: {missing_features}")
                 for col in missing_features:
-                    # Fill missing features with zeros or appropriate default
                     enhanced_df[col] = 0
 
-            # Retain only the features used during training
-            # Fill any missing values
-            enhanced_df = enhanced_df.fillna(method='ffill').fillna(0)
-            enhanced_df = enhanced_df.dropna()
-            enhanced_df.dropna(inplace=True)
-            # Don't scale here - let prepare_sequence_data handle it
-            # The scaler will be applied in prepare_sequence_data function
+            # Keep only training features in correct order
+            enhanced_df = enhanced_df[available_features].fillna(method='ffill').fillna(0)
 
-            # 4. External data collection with better error handling
-            external_data = {}
-            try:
-                # Use fallback data when APIs are not available
-                external_data = {
-                    'trend_score': np.random.uniform(0.3, 0.7),
-                    'news_sentiment_avg': np.random.uniform(-0.1, 0.1),
-                    'gdp_growth': np.random.uniform(1.5, 3.5),
-                    'inflation_rate': np.random.uniform(2.0, 5.0),
-                    'unemployment_rate': np.random.uniform(3.0, 8.0),
-                    'fear_composite_fear_index': np.random.uniform(20, 80)
-                }
-                
-                # Try to get real data if available
-                try:
-                    if hasattr(components['trends_provider'], 'get_trend_score'):
-                        trend_data = components['trends_provider'].get_trend_score(ticker)
-                        if trend_data:
-                            external_data['trend_score'] = trend_data
-                except:
-                    pass  # Use fallback data
-                    
-                try:
-                    if hasattr(components['news_provider'], 'get_sentiment_average'):
-                        news_sentiment = components['news_provider'].get_sentiment_average(ticker)
-                        if news_sentiment is not None:
-                            external_data['news_sentiment_avg'] = news_sentiment
-                except:
-                    pass  # Use fallback data
-    
-            except Exception as e:
-                st.warning(f"External data collection failed: {e}")
-                # Fallback external data
-                external_data = {
-                    'trend_score': 0.5,
-                    'news_sentiment_avg': 0.0,
-                    'gdp_growth': 2.5,
-                    'inflation_rate': 3.0,
-                    'unemployment_rate': 5.0,
-                    'fear_composite_fear_index': 50
-                }
-            
-            # 5. Load or train models
+            # 5. External data collection
+            external_data = {
+                'trend_score': np.random.uniform(0.3, 0.7),
+                'news_sentiment_avg': np.random.uniform(-0.1, 0.1),
+                'gdp_growth': np.random.uniform(1.5, 3.5),
+                'inflation_rate': np.random.uniform(2.0, 5.0),
+                'unemployment_rate': np.random.uniform(3.0, 8.0),
+                'fear_composite_fear_index': np.random.uniform(20, 80)
+            }
+
+            # 6. Load trained models
             models, model_info = load_trained_models(ticker)
             if not models:
-                # If no models available, train new ones
-                st.warning(
-                    "🔄 No pre-trained models found. Training new models...")
-                models, scaler, training_config = train_enhanced_models(
-                    enhanced_df, available_features, ticker, time_step=time_step)
-                if not models:
-                    st.error("Failed to train models")
-                    return None
-                else:
-                    # Save the scaler and config
-                    try:
-                        with open(f"models/{safe_ticker}_scaler.pkl", 'wb') as f:
-                            pickle.dump(scaler, f)
-                        with open(f"models/{safe_ticker}_config.pkl", "wb") as f:
-                            pickle.dump(training_config, f)
-                    except Exception as e:
-                        st.warning(f"Could not save scaler or config: {e}")
+                st.error("No trained models available")
+                return None
 
-            # 6. Fetch real-time price
-            current_price = components['data_manager'].fmp_provider.fetch_real_time_price(
-                ticker)
+            # 7. Fetch real-time price
+            current_price = components['data_manager'].fmp_provider.fetch_real_time_price(ticker)
             if current_price is None:
-                # Fallback to last known close price
                 current_price = enhanced_df['Close'].iloc[-1]
 
-            # 7. Make predictions
-            prediction_results = {}
-            # Prepare input data for predictions
-            if len(enhanced_df) > time_step:  # Changed from scaled_df to enhanced_df
-                X_seq, y_seq, _ = prepare_sequence_data(
-                    enhanced_df, available_features, time_step)  # Use enhanced_df
-                if X_seq is not None and len(X_seq) > 0:
+            # 8. Make predictions - FIXED SCALING ISSUE
+            if len(enhanced_df) > time_step:
+                # Use the SAME scaling process as training
+                scaled_data = scaler.transform(enhanced_df.values)
+                
+                # Create sequences exactly like training
+                X, y = [], []
+                for i in range(time_step, len(scaled_data)):
+                    X.append(scaled_data[i-time_step:i])
+                    y.append(scaled_data[i, 0])  # Close price is first column
+                
+                if len(X) > 0:
+                    X_seq = np.array(X)
                     X_flat = X_seq.reshape(X_seq.shape[0], -1)
                     recent_X_seq = X_seq[-1:]
                     recent_X_flat = X_flat[-1:]
 
-                    # Get ensemble prediction using merging.py function
-                    try:
-                        ensemble_result = enhanced_ensemble_predict(
-                            models, recent_X_seq, recent_X_flat, scaler)  # Pass scaler
-                        
-                        # Handle different return types from enhanced_ensemble_predict
-                        if isinstance(ensemble_result, tuple) and len(ensemble_result) == 2:
-                            ensemble_pred, used_models = ensemble_result
-                        else:
-                            ensemble_pred = ensemble_result
-                            used_models = list(models.keys())  # Fallback to all models
-                    except (ValueError, TypeError) as e:
-                        # Handle any errors in ensemble prediction
-                        st.warning(f"Ensemble prediction failed: {e}")
-                        ensemble_pred = current_price  # Fallback to current price
-                        used_models = []
+                    # Get ensemble prediction
+                    ensemble_result = enhanced_ensemble_predict(
+                        models, recent_X_seq, recent_X_flat, scaler)
+                    
+                    if isinstance(ensemble_result, tuple) and len(ensemble_result) == 2:
+                        ensemble_pred, used_models = ensemble_result
+                    else:
+                        ensemble_pred = ensemble_result
+                        used_models = list(models.keys())
 
-                    # Individual model predictions (FIXED)
+                    # Individual model predictions
                     individual_preds = {}
                     for model_name, model in models.items():
-                        if model_name == 'ae_scaler':
-                            continue  # Skip scaler
+                        if model_name == 'autoencoder':
+                            # Handle autoencoder anomaly detection
+                            input_tensor = torch.tensor(recent_X_seq, dtype=torch.float32)
+                            is_anomaly = model.detect_anomaly(input_tensor)
+                            individual_preds[model_name] = {'anomaly': is_anomaly.item()}
+                            continue
+                            
                         try:
                             if model_name == 'xgboost':
                                 pred_scaled = model.predict(recent_X_flat)[0]
-                            elif model_name == 'autoencoder':
-                                # For autoencoder, check for anomalies
-                                input_tensor = torch.tensor(
-                                    recent_X_seq, dtype=torch.float32)
-                                is_anomaly = model.detect_anomaly(input_tensor)
-                                individual_preds[model_name] = {
-                                    'anomaly': is_anomaly.item()}
-                                continue
                             else:
                                 model.eval()
                                 with torch.no_grad():
-                                    pred_tensor = model(torch.tensor(
-                                        recent_X_seq, dtype=torch.float32))
+                                    pred_tensor = model(torch.tensor(recent_X_seq, dtype=torch.float32))
                                     pred_scaled = pred_tensor.numpy().flatten()[0]
 
-                            # Use inverse_transform_prediction from merging.py
+                            # Inverse transform
                             pred_original = inverse_transform_prediction(pred_scaled, scaler, 0)
                             individual_preds[model_name] = pred_original
 
                         except Exception as e:
-                            st.warning(
-                                f"Prediction failed for {model_name}: {e}")
+                            st.warning(f"Prediction failed for {model_name}: {e}")
 
-                    # Handle ensemble prediction (FIXED)
+                    # Final ensemble prediction
                     if ensemble_pred is not None and len(ensemble_pred) > 0:
-                        ensemble_pred_original = ensemble_pred[0]  # Already inverse transformed
+                        ensemble_pred_original = ensemble_pred[0]
                     else:
                         ensemble_pred_original = current_price
 
@@ -690,8 +854,7 @@ def get_comprehensive_predictions(ticker):
                     st.error("Not enough data to make predictions.")
                     return None
             else:
-                st.error(
-                    f"Insufficient data: {len(enhanced_df)} records, need more than {time_step}")
+                st.error(f"Insufficient data: {len(enhanced_df)} records, need more than {time_step}")
                 return None
                 
     except Exception as e:
@@ -699,8 +862,37 @@ def get_comprehensive_predictions(ticker):
         st.error(f"Error in get_comprehensive_predictions: {e}")
         st.error(f"Traceback: {traceback.format_exc()}")
         return None
-
-
+    
+def validate_model_compatibility(ticker):
+    """Validate that all required model files exist and are compatible"""
+    safe_ticker = ticker.replace('/', '_')
+    required_files = [
+        f"models/{safe_ticker}_config.pkl",
+        f"models/{safe_ticker}_features.pkl", 
+        f"models/{safe_ticker}_scaler.pkl"
+    ]
+    
+    missing_files = [f for f in required_files if not os.path.exists(f)]
+    
+    if missing_files:
+        st.warning(f"Missing model files for {ticker}: {missing_files}")
+        return False
+        
+    # Load and validate config
+    try:
+        with open(f"models/{safe_ticker}_config.pkl", "rb") as f:
+            config = pickle.load(f)
+        with open(f"models/{safe_ticker}_features.pkl", "rb") as f:
+            features = pickle.load(f)
+            
+        st.success(f"✅ Model files validated for {ticker}")
+        st.info(f"Time step: {config['time_step']}, Features: {len(features)}")
+        return True
+        
+    except Exception as e:
+        st.error(f"Model validation failed for {ticker}: {e}")
+        return False    
+    
 def display_performance_analytics():
     """Display trading performance analytics"""
     if 'portfolio' not in st.session_state or not st.session_state['portfolio']['trade_history']:
