@@ -177,7 +177,7 @@ def setup_sidebar():
         st.sidebar.success("💎 Premium Mode is Active")
 
     
-    if premium_mode:
+    if st.session_state.get('premium_mode', False):
         st.sidebar.success("💎 **PREMIUM ACTIVE**")
         st.sidebar.markdown("""
         **✅ Premium Features Enabled:**
