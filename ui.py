@@ -160,15 +160,9 @@ def setup_sidebar():
     
     # PREMIUM MODE TOGGLE - CORRECTED VERSION
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 💎 Premium Features")
-    
-    st.sidebar.markdown("---")
     st.sidebar.markdown("### 💎 Premium Access")
 
-    if 'premium_mode' not in st.session_state:
-        st.session_state['premium_mode'] = False
-
-    if not st.session_state['premium_mode']:
+    if not st.session_state.get('premium_mode', False):
         password = st.sidebar.text_input("Enter Premium Password", type="password")
         if st.sidebar.button("Unlock Premium"):
             if password == "3579_2468":  # Replace with your chosen password
