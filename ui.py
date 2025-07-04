@@ -162,12 +162,23 @@ def setup_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 💎 Premium Features")
     
-    premium_mode = st.sidebar.checkbox(
-        "🔓 Activate Premium Mode", 
-        value=st.session_state.get('premium_mode', False),
-        help="Unlock advanced AI signals, risk management, and professional tools"
-    )
-    st.session_state['premium_mode'] = premium_mode
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 💎 Premium Access")
+
+    if 'premium_mode' not in st.session_state:
+        st.session_state['premium_mode'] = False
+
+    if not st.session_state['premium_mode']:
+        password = st.sidebar.text_input("Enter Premium Password", type="password")
+        if st.sidebar.button("Unlock Premium"):
+            if password == "3579_2468":  # Replace with your chosen password
+                st.session_state['premium_mode'] = True
+                st.sidebar.success("💎 Premium Mode Activated!")
+            else:
+                st.sidebar.error("Incorrect password. Please try again.")
+    else:
+        st.sidebar.success("💎 Premium Mode is Active")
+
     
     if premium_mode:
         st.sidebar.success("💎 **PREMIUM ACTIVE**")
