@@ -2953,31 +2953,6 @@ def main():
     ### Powered by Multi-Model Ensemble & Real-time Market Intelligence
     """)
 
-    # Quick Ticker Selection Buttons
-    st.markdown("### 🎯 Quick Instrument Selection")
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    
-    quick_tickers = {
-        "^GDAXI": {"name": "DAX", "icon": "🇩🇪"},
-        "GC=F": {"name": "Gold", "icon": "🥇"},
-        "KC=F": {"name": "Coffee", "icon": "☕"},
-        "NG=F": {"name": "Gas", "icon": "⛽"},
-        "CC=F": {"name": "Cocoa", "icon": "🍫"},
-        "^HSI": {"name": "HSI", "icon": "🇭🇰"}
-    }
-    
-    current_ticker = st.session_state.get('selected_ticker', '^GDAXI')
-    
-    for i, (ticker, info) in enumerate(quick_tickers.items()):
-        col = [col1, col2, col3, col4, col5, col6][i]
-        with col:
-            button_type = "primary" if ticker == current_ticker else "secondary"
-            if st.button(f"{info['icon']} {info['name']}", key=f"quick_{ticker}", type=button_type):
-                st.session_state['selected_ticker'] = ticker
-                st.rerun()
-    
-    st.markdown("---")
-
     if not BACKEND_AVAILABLE:
         st.error("❌ Backend not available. Please ensure merging.py is in the same directory.")
         return
