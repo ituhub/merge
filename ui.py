@@ -22,18 +22,6 @@ import csv
 import random
 import json
 
-# Import auto-demo system with error handling
-try:
-    from auto_demo_system import (
-        setup_auto_demo_controls,
-        display_auto_demo_dashboard,
-        display_demo_completed_summary
-    )
-    AUTO_DEMO_AVAILABLE = True
-except ImportError:
-    AUTO_DEMO_AVAILABLE = False
-    st.sidebar.warning("Auto-demo system not available")
-
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
 
@@ -587,6 +575,17 @@ def setup_sidebar():
     **Uptime**: 99.8%
     **Last Update**: {datetime.now().strftime('%H:%M:%S')}
     """)
+    
+    # Add Disclaimer at the bottom of the sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.markdown(
+        """
+        📜 **Disclaimer**  
+        This application is for informational and educational purposes only and does not constitute financial advice.  
+        Trading involves risk, and past performance is not indicative of future results.  
+        Always consult with a qualified financial advisor before making any trading decisions.
+        """
+    )
 
 def initialize_backend_components():
     """Initialize all backend components"""
@@ -3020,40 +3019,6 @@ def main():
         remaining = refresh_interval - time_diff
         st.sidebar.info(f"⏱️ Next refresh in: {remaining}s")
 
-    # Demo mode settings
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 🎯 Demo Mode")
-    
-    if AUTO_DEMO_AVAILABLE:
-        setup_auto_demo_controls()
-    else:
-        st.sidebar.warning("Auto Demo not available. Please ensure merging.py is in the same directory.")
-    
-    demo_speed = st.sidebar.selectbox(
-        "Demo Speed",
-        ["Real-time", "2x Speed", "5x Speed", "10x Speed"],
-        index=0,
-        help="Speed up demo for presentation"
-    )
-    
-    if st.sidebar.button("🎬 Start Live Demo"):
-        st.session_state['demo_active'] = True
-        st.sidebar.success("🎬 Live demo started!")
-    
-    if st.sidebar.button("⏸️ Pause Demo"):
-        st.session_state['demo_active'] = False
-        st.sidebar.info("⏸️ Demo paused")
-    
-    # Client presentation mode
-    presentation_mode = st.sidebar.checkbox("🎤 Presentation Mode", help="Optimize for client presentation")
-    st.session_state['presentation_mode'] = presentation_mode
-    
-    if presentation_mode:
-        st.sidebar.success("🎤 Presentation mode active - Enhanced visuals enabled")
-
-    # Display auto-demo dashboard if active
-    if AUTO_DEMO_AVAILABLE:
-        display_auto_demo_dashboard()
 
     # Get predictions and display results
     with st.spinner(f'🔄 Processing {selected_ticker}...'):
@@ -3070,10 +3035,6 @@ def main():
             st.info("ℹ️ Automated Trading is disabled")
     else:
         st.error("❌ Unable to generate predictions. Please check your setup and try again.")
-        
-    # Display demo completion summary
-    if AUTO_DEMO_AVAILABLE:
-        display_demo_completed_summary()    
         
         # Troubleshooting info
         with st.expander("🔧 Troubleshooting"):
